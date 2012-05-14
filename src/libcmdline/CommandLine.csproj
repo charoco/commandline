@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -72,10 +72,42 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Text\BaseSentenceBuilder.cs" />
+    <Compile Include="Text\CopyrightInfo.cs" />
+    <Compile Include="Text\EnglishSentenceBuilder.cs" />
+    <Compile Include="Text\FormatOptionHelpTextEventArgs.cs" />
+    <Compile Include="Text\HeadingInfo.cs" />
+    <Compile Include="Utilities\Assumes.cs" />
+    <Compile Include="Parser\CommandLineOptionsBase.cs" />
+    <Compile Include="Parser\CommandLineParser.cs" />
+    <Compile Include="Parser\CommandLineParserException.cs" />
+    <Compile Include="Parser\CommandLineParserSettings.cs" />
+    <Compile Include="Core\ArgumentParser.cs" />
+    <Compile Include="Attributes\BaseOptionAttribute.cs" />
+    <Compile Include="Attributes\HelpOptionAttribute.cs" />
+    <Compile Include="Attributes\OptionArrayAttribute.cs" />
+    <Compile Include="Attributes\OptionAttribute.cs" />
+    <Compile Include="Attributes\OptionListAttribute.cs" />
+    <Compile Include="Core\BadOptionInfo.cs" />
+    <Compile Include="Core\IArgumentEnumerator.cs" />
+    <Compile Include="Core\LongOptionParser.cs" />
+    <Compile Include="Core\OneCharStringEnumerator.cs" />
+    <Compile Include="Core\OptionGroupParser.cs" />
+    <Compile Include="Core\OptionInfo.cs" />
+    <Compile Include="Core\OptionMap.cs" />
+    <Compile Include="Core\Pair.cs" />
+    <Compile Include="Core\ParserState.cs" />
+    <Compile Include="Core\ParsingError.cs" />
+    <Compile Include="Core\PostParsingState.cs" />
+    <Compile Include="Parser\ICommandLineParser.cs" />
     <Compile Include="Properties\ThisAssembly.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CommandLine.cs" />
-    <Compile Include="CommandLineText.cs" />
+    <Compile Include="Utilities\StringUtil.cs" />
+    <Compile Include="Text\HelpText.cs" />
+    <Compile Include="Attributes\ValueListAttribute.cs" />
+    <Compile Include="Core\StringArrayEnumerator.cs" />
+    <Compile Include="Core\TargetWrapper.cs" />
+    <Compile Include="Utilities\ReflectionUtil.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
