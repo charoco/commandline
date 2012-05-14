@@ -179,6 +179,30 @@ namespace CommandLine.Tests
             base.AssertParserFailure(result);
         }
 
+        [Test]
+        public void PassingBadValueToAnIntegerArrayOptionFailsWithSlash()
+        {
+            var options = new SimpleOptionsWithArray();
+            bool result = base.Parser.ParseArguments(new string[] { "/y", "one", "2", "3" }, options);
+
+            base.AssertParserFailure(result);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] { "/yone", "2", "3" }, options);
+
+            base.AssertParserFailure(result);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] { "/intarr", "1", "two", "3" }, options);
+
+            base.AssertParserFailure(result);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] { "/intarr=1", "2", "three" }, options);
+
+            base.AssertParserFailure(result);
+        }
+
 
         [Test]
         public void PassingNoValueToAnIntegerArrayOptionFails()
@@ -310,6 +334,72 @@ namespace CommandLine.Tests
             Assert.AreEqual(1234, options.IntegerValue);
             base.AssertArrayItemEqual(new double[] { .1, .2, .3, .4 }, options.DoubleArrayValue);
             Assert.AreEqual("I'm really playing with the parser!", options.StringValue);
+
+        }
+
+        [Test]
+        public void ParseDifferentArraysTogetherWithSlashes_CombinationTwo()
+        {
+            var options = new SimpleOptionsWithArray();
+            bool result = base.Parser.ParseArguments(new string[] {
+                "/z", "one", "two", "three", "four",
+                "/y", "1", "2", "3", "4",
+                "/q", "0.1", "0.2", "0.3", "0.4",
+                "/string=after"
+            }, options);
+
+            base.AssertParserSuccess(result);
+            base.AssertArrayItemEqual(new string[] { "one", "two", "three", "four" }, options.StringArrayValue);
+            base.AssertArrayItemEqual(new int[] { 1, 2, 3, 4 }, options.IntegerArrayValue);
+            base.AssertArrayItemEqual(new double[] { .1, .2, .3, .4 }, options.DoubleArrayValue);
+            Assert.AreEqual("after", options.StringValue);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] {
+                "/string", "before",
+                "/y", "1", "2", "3", "4",
+                "/z", "one", "two", "three", "four",
+                "/q", "0.1", "0.2", "0.3", "0.4"
+            }, options);
+
+            base.AssertParserSuccess(result);
+            Assert.AreEqual("before", options.StringValue);
+            base.AssertArrayItemEqual(new int[] { 1, 2, 3, 4 }, options.IntegerArrayValue);
+            base.AssertArrayItemEqual(new string[] { "one", "two", "three", "four" }, options.StringArrayValue);
+            base.AssertArrayItemEqual(new double[] { .1, .2, .3, .4 }, options.DoubleArrayValue);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] {
+                "/q", "0.1", "0.2", "0.3", "0.4",
+                "/y", "1", "2", "3", "4",
+                "/s", "near-the-center",
+                "/z", "one", "two", "three", "four"
+            }, options);
+
+            base.AssertParserSuccess(result);
+            base.AssertArrayItemEqual(new double[] { .1, .2, .3, .4 }, options.DoubleArrayValue);
+            base.AssertArrayItemEqual(new int[] { 1, 2, 3, 4 }, options.IntegerArrayValue);
+            Assert.AreEqual("near-the-center", options.StringValue);
+            base.AssertArrayItemEqual(new string[] { "one", "two", "three", "four" }, options.StringArrayValue);
+
+            options = new SimpleOptionsWithArray();
+            result = base.Parser.ParseArguments(new string[] {
+                "/switch",
+                "/z", "one", "two", "three", "four",
+                "/y", "1", "2", "3", "4",
+                "/i", "1234",
+                "/q", "0.1", "0.2", "0.3", "0.4",
+                "/string", "I'm really playing with the parser!"
+            }, options);
+
+            base.AssertParserSuccess(result);
+            Assert.IsTrue(options.BooleanValue);
+            base.AssertArrayItemEqual(new string[] { "one", "two", "three", "four" }, options.StringArrayValue);
+            base.AssertArrayItemEqual(new int[] { 1, 2, 3, 4 }, options.IntegerArrayValue);
+            Assert.AreEqual(1234, options.IntegerValue);
+            base.AssertArrayItemEqual(new double[] { .1, .2, .3, .4 }, options.DoubleArrayValue);
+            Assert.AreEqual("I'm really playing with the parser!", options.StringValue);
+
         }
 
         /****************************************************************************************************/

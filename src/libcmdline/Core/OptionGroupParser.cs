@@ -31,11 +31,19 @@ namespace CommandLine
 {
     internal sealed class OptionGroupParser : ArgumentParser
     {
-        public sealed override ParserState Parse(IArgumentEnumerator argumentEnumerator, OptionMap map, object options)
-        {
-            var valueSetting = false;
+        private readonly int switchLength;
 
-            IArgumentEnumerator group = new OneCharStringEnumerator(argumentEnumerator.Current.Substring(1));
+        public OptionGroupParser() : this(1) {}
+
+        public OptionGroupParser(int switchLength)
+            : base()
+        {
+            this.switchLength = switchLength;
+        }
+
+        public override ParserState Parse(IArgumentEnumerator argumentEnumerator, OptionMap map, object options)
+        {
+            IArgumentEnumerator group = new OneCharStringEnumerator(argumentEnumerator.Current.Substring(switchLength));
             while (group.MoveNext())
             {
                 var option = map[group.Current];
@@ -44,13 +52,14 @@ namespace CommandLine
 
                 option.IsDefined = true;
 
-                ArgumentParser.EnsureOptionArrayAttributeIsNotBoundToScalar(option);
+                EnsureOptionArrayAttributeIsNotBoundToScalar(option);
 
                 if (!option.IsBoolean)
                 {
                     if (argumentEnumerator.IsLast && group.IsLast)
                         return ParserState.Failure;
 
+                    var valueSetting = false;
                     if (!group.IsLast)
                     {
                         if (!option.IsArray)
@@ -59,13 +68,13 @@ namespace CommandLine
                             if (!valueSetting)
                                 this.DefineOptionThatViolatesFormat(option);
 
-                            return ArgumentParser.BooleanToParserState(valueSetting);
+                            return BooleanToParserState(valueSetting);
                         }
                         else
                         {
-                            ArgumentParser.EnsureOptionAttributeIsArrayCompatible(option);
+                            EnsureOptionAttributeIsArrayCompatible(option);
 
-                            var items = ArgumentParser.GetNextInputValues(argumentEnumerator);
+                            var items = GetNextInputValues(argumentEnumerator);
                             items.Insert(0, group.GetRemainingFromNext());
 
                             valueSetting = option.SetValue(items, options);

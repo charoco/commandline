@@ -31,17 +31,21 @@ namespace CommandLine
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+
 
     internal abstract class ArgumentParser
     {
-        public ArgumentParser()
+        protected ArgumentParser()
         {
             this.PostParsingState = new List<ParsingError>();
         }
 
+        public static readonly IEnumerable<string> ValidSwitches = new[]{"--","-","/"};
+
         public abstract ParserState Parse(IArgumentEnumerator argumentEnumerator, OptionMap map, object options);
 
-        public List<ParsingError> PostParsingState { get; private set; }
+        public virtual List<ParsingError> PostParsingState { get; protected set; }
 
         protected void DefineOptionThatViolatesFormat(OptionInfo option)
         {
@@ -52,14 +56,18 @@ namespace CommandLine
 
         public static ArgumentParser Create(string argument)
         {
-            if (argument.Equals("-", StringComparison.InvariantCulture))
+            if (ValidSwitches.Contains(argument))
+            {
                 return null;
+            }
 
-            if (argument[0] == '-' && argument[1] == '-')
-                return new LongOptionParser();
-
-            if (argument[0] == '-')
-                return new OptionGroupParser();
+            foreach(var validSwitch in ValidSwitches)
+            {
+                if(argument.StartsWith(validSwitch))
+                {
+                    return new LongOrOptionGroupParser(validSwitch.Length);
+                }
+            }
 
             return null;
         }
@@ -67,9 +75,14 @@ namespace CommandLine
         public static bool IsInputValue(string argument)
         {
             if (argument.Length > 0)
-                return argument.Equals("-", StringComparison.InvariantCulture) || argument[0] != '-';
+                return argument.Equals("-", StringComparison.InvariantCulture) || !StartsWithValidSwitch(argument);
 
             return true;
+        }
+
+        private static bool StartsWithValidSwitch(string argument)
+        {
+            return ValidSwitches.Any(argument.StartsWith);
         }
 
 #if DEBUG
@@ -131,6 +144,43 @@ namespace CommandLine
         {
             if (!option.IsArray && option.IsAttributeArrayCompatible)
                 throw new CommandLineParserException();
+        }
+    }
+
+    internal class LongOrOptionGroupParser : ArgumentParser
+    {
+        private readonly int switchLength;
+        private ArgumentParser innerParser;
+
+        public LongOrOptionGroupParser(int switchLength)
+        {
+            this.switchLength = switchLength;
+        }
+
+        public override ParserState Parse(IArgumentEnumerator argumentEnumerator, OptionMap map, object options)
+        {
+            innerParser = new OptionGroupParser(switchLength);
+
+            var parts = argumentEnumerator.Current.Substring(switchLength).Split(new char[] { '=' }, 2);
+            if(parts[0].Length > 1)
+            {
+                var option = map[parts[0]];
+                if (option != null) innerParser = new LongOptionParser(switchLength);
+            }
+            
+            return innerParser.Parse(argumentEnumerator, map, options);
+        }
+
+        public override List<ParsingError> PostParsingState
+        {
+            get
+            {
+                return innerParser != null ? innerParser.PostParsingState : base.PostParsingState;
+            }
+            protected set
+            {
+                base.PostParsingState = value;
+            }
         }
     }
 }

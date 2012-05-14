@@ -31,14 +31,18 @@ namespace CommandLine
 {
     internal sealed class LongOptionParser : ArgumentParser
     {
-        public LongOptionParser()
-            : base()
+        private readonly int switchLength;
+
+        public LongOptionParser() : this(2) {}
+
+        public LongOptionParser(int switchLength) : base()
         {
+            this.switchLength = switchLength;
         }
 
         public sealed override ParserState Parse(IArgumentEnumerator argumentEnumerator, OptionMap map, object options)
         {
-            var parts = argumentEnumerator.Current.Substring(2).Split(new char[] { '=' }, 2);
+            var parts = argumentEnumerator.Current.Substring(switchLength).Split(new char[] { '=' }, 2);
             var option = map[parts[0]];
             var valueSetting = false;
 
@@ -47,11 +51,11 @@ namespace CommandLine
 
             option.IsDefined = true;
 
-            ArgumentParser.EnsureOptionArrayAttributeIsNotBoundToScalar(option);
+            EnsureOptionArrayAttributeIsNotBoundToScalar(option);
 
             if (!option.IsBoolean)
             {
-                if (parts.Length == 1 && (argumentEnumerator.IsLast || !ArgumentParser.IsInputValue(argumentEnumerator.Next)))
+                if (parts.Length == 1 && (argumentEnumerator.IsLast || !IsInputValue(argumentEnumerator.Next)))
                     return ParserState.Failure;
 
                 if (parts.Length == 2)
@@ -62,20 +66,20 @@ namespace CommandLine
                         if (!valueSetting)
                             this.DefineOptionThatViolatesFormat(option);
 
-                        return ArgumentParser.BooleanToParserState(valueSetting);
+                        return BooleanToParserState(valueSetting);
                     }
                     else
                     {
-                        ArgumentParser.EnsureOptionAttributeIsArrayCompatible(option);
+                        EnsureOptionAttributeIsArrayCompatible(option);
 
-                        var items = ArgumentParser.GetNextInputValues(argumentEnumerator);
+                        var items = GetNextInputValues(argumentEnumerator);
                         items.Insert(0, parts[1]);
 
                         valueSetting = option.SetValue(items, options);
                         if (!valueSetting)
                             this.DefineOptionThatViolatesFormat(option);
 
-                        return ArgumentParser.BooleanToParserState(valueSetting);
+                        return BooleanToParserState(valueSetting);
                     }
                 }
                 else

@@ -38,7 +38,7 @@ namespace CommandLine
     /// </summary>
     public class CommandLineParser : ICommandLineParser
     {
-        private CommandLineParserSettings _settings;
+        private readonly CommandLineParserSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandLine.CommandLineParser"/> class.
@@ -120,13 +120,13 @@ namespace CommandLine
             IArgumentEnumerator arguments = new StringArrayEnumerator(args);
             while (arguments.MoveNext())
             {
-                string argument = arguments.Current;
-                if (argument != null && argument.Length > 0)
+                var argument = arguments.Current;
+                if (!string.IsNullOrEmpty(argument))
                 {
-                    ArgumentParser parser = ArgumentParser.Create(argument);
+                    var parser = ArgumentParser.Create(argument);
                     if (parser != null)
                     {
-                        ParserState result = parser.Parse(arguments, optionMap, options);
+                        var result = parser.Parse(arguments, optionMap, options);
                         if ((result & ParserState.Failure) == ParserState.Failure)
                         {
                             SetPostParsingStateIfNeeded(options, parser.PostParsingState);
@@ -142,7 +142,6 @@ namespace CommandLine
                         if (!target.AddValueItemIfAllowed(argument))
                         {
                             hadError = true;
-                            continue; //break;
                         }
                     }
                 }
@@ -156,9 +155,9 @@ namespace CommandLine
 
         private bool ParseHelp(string[] args, HelpOptionAttribute helpOption)
         {
-            bool caseSensitive = _settings.CaseSensitive;
+            var caseSensitive = _settings.CaseSensitive;
 
-            for (int i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 if (!string.IsNullOrEmpty(helpOption.ShortName))
                 {
@@ -177,10 +176,11 @@ namespace CommandLine
         }
 
         //private static void SetPostParsingStateIfNeeded(object options, PostParsingState state)
-        private static void SetPostParsingStateIfNeeded(object options, List<ParsingError> state)
+        private static void SetPostParsingStateIfNeeded(object options, IEnumerable<ParsingError> state)
         {
-            if (options is CommandLineOptionsBase)
-                ((CommandLineOptionsBase)options).InternalLastPostParsingState.Errors.AddRange(state);
+            var commandLineOptionsBase = options as CommandLineOptionsBase;
+            if (commandLineOptionsBase != null)
+                commandLineOptionsBase.InternalLastPostParsingState.Errors.AddRange(state);
         }
     }
 }

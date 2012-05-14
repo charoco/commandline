@@ -92,6 +92,20 @@ namespace CommandLine.Tests
         }
 
         [Test]
+        public void ParseShortAdjacentOptionsWithSlash()
+        {
+            var options = new BooleanSetOptions();
+            bool result = base.Parser.ParseArguments(new string[] { "/ca", "/d65" }, options);
+
+            base.AssertParserSuccess(result);
+            Assert.IsTrue(options.BooleanThree);
+            Assert.IsTrue(options.BooleanOne);
+            Assert.IsFalse(options.BooleanTwo);
+            Assert.AreEqual(65, options.NonBooleanValue);
+            Console.WriteLine(options);
+        }
+
+        [Test]
         public void ParseShortLongOptions()
         {
             var options = new BooleanSetOptions();
